@@ -21,7 +21,13 @@ TODO — answer after the SSE/chat implementation exists.
 
 ## 3. Conversation context
 
-TODO — answer after context handling is implemented.
+The conversation is persisted as a single JSONB column (`conversation`, default `[]`) on the `Project` row (`apps/api/prisma/schema.prisma`, initial migration `20260915163201_init`) instead of a separate `Message` table. Messages are only ever read or written as a whole per project — there is no requirement to query individual messages — so a `Message` table would add a join and a second cascade rule without buying anything.
+
+This also makes deletion semantics trivially correct by construction: deleting a `User` cascades to their `Project` rows (the single FK rule, `onDelete: Cascade`), and every message disappears together with the project row because each message is part of that row. No orphan-message cleanup can exist, and resetting a conversation is a single update to `[]` rather than a bulk delete.
+
+Each stored entry carries `role` (user | assistant), `content`, `createdAt`, and — for assistant messages — a `status` (`COMPLETED` / `PARTIAL` / `ERROR`) so a partially streamed response stays distinguishable after persistence. The trade-off is accepted consciously: individual messages cannot be indexed or queried in SQL, which this use case does not need.
+
+TODO — how the stored history is assembled into the AI request (truncation / limit, if any).
 
 ## 4. State management
 

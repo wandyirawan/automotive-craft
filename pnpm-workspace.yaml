@@ -5,3 +5,5 @@ allowBuilds:
   unrs-resolver: true
   "@nestjs/core": false
   esbuild: false
+  '@prisma/engines': true
+  prisma: true
