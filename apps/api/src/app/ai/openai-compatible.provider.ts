@@ -15,12 +15,22 @@ export class OpenAICompatibleProvider implements AiProvider {
     });
   }
 
-  async chat(messages: AiMessage[]): Promise<string> {
-    const response = await this.client.chat.completions.create({
+  async *chat(messages: AiMessage[]): AsyncIterable<string> {
+    const stream = await this.client.chat.completions.create({
       model: this.config.model,
-      messages,
+      messages: messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
+      stream: true,
     });
 
-    return response.choices[0]?.message?.content ?? "";
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+
+      if (content) {
+        yield content;
+      }
+    }
   }
 }

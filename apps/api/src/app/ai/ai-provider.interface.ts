@@ -4,7 +4,7 @@ export interface AiMessage {
 }
 
 export interface AiProvider {
-  chat(messages: AiMessage[]): Promise<string>;
+  chat(messages: AiMessage[]): AsyncIterable<string>;
 }
 
 export interface OpenAICompatibleConfig {
