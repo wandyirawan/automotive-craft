@@ -5,6 +5,11 @@ dist
 tmp
 out-tsc
 
+# environment (kredensial — .env.example tetap ter-track)
+.env
+.env.*
+!.env.example
+
 # dependencies
 node_modules
 
