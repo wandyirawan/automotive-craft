@@ -33,7 +33,6 @@ model Project {
   userId       Int
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  messages      Message[]
   conversation Json          @default("[]")
 
   createdAt    DateTime      @default(now())
