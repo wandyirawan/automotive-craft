@@ -1,10 +1,13 @@
-export default function IndexPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-100">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Automotive Craft</h1>
-        <p className="mt-2 text-zinc-400">AI Design Brief Assistant</p>
-      </div>
-    </div>
-  );
-}
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { api } from "@/lib/api"; // Sesuaikan path dengan lokasi api kamu
+export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    // Redirect ke projects jika sudah login, atau login page
+    try {
+      await api.getMe();
+      throw redirect({ to: "/app/projects" });
+    } catch {
+      throw redirect({ to: "/login" });
+    }
+  },
+});

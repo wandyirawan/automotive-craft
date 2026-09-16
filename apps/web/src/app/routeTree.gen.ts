@@ -9,27 +9,139 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root.route'
+import { Route as IndexRouteRouteImport } from './routes/index.route'
+import { Route as AppRouteRouteImport } from './routes/app.route'
+import { Route as LoginRouteRouteImport } from './routes/login.route'
+import { Route as AppProjectsRouteRouteImport } from './routes/app/projects.route'
+import { Route as AppChatProjectIdRouteRouteImport } from './routes/app/chat.$projectId.route'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const IndexRouteRoute = IndexRouteRouteImport.update({
+  id: '/',
+  path: '',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRouteRoute = LoginRouteRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppProjectsRouteRoute = AppProjectsRouteRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppChatProjectIdRouteRoute = AppChatProjectIdRouteRouteImport.update({
+  id: '/chat/$projectId',
+  path: '/chat/$projectId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRouteRoute
+  '/app': typeof AppRouteRouteWithChildren
+  '/login': typeof LoginRouteRoute
+  '/app/projects': typeof AppProjectsRouteRoute
+  '/app/chat/$projectId': typeof AppChatProjectIdRouteRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRouteRoute
+  '/app': typeof AppRouteRouteWithChildren
+  '/login': typeof LoginRouteRoute
+  '/app/projects': typeof AppProjectsRouteRoute
+  '/app/chat/$projectId': typeof AppChatProjectIdRouteRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRouteRoute
+  '/app': typeof AppRouteRouteWithChildren
+  '/login': typeof LoginRouteRoute
+  '/app/projects': typeof AppProjectsRouteRoute
+  '/app/chat/$projectId': typeof AppChatProjectIdRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths: '/' | '/app' | '/login' | '/app/projects' | '/app/chat/$projectId'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to: '/' | '/app' | '/login' | '/app/projects' | '/app/chat/$projectId'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/login'
+    | '/app/projects'
+    | '/app/chat/$projectId'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  IndexRouteRoute: typeof IndexRouteRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
+  LoginRouteRoute: typeof LoginRouteRoute
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/projects': {
+      id: '/app/projects'
+      path: '/projects'
+      fullPath: '/app/projects'
+      preLoaderRoute: typeof AppProjectsRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/chat/$projectId': {
+      id: '/app/chat/$projectId'
+      path: '/chat/$projectId'
+      fullPath: '/app/chat/$projectId'
+      preLoaderRoute: typeof AppChatProjectIdRouteRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+  }
+}
+
+interface AppRouteRouteChildren {
+  AppProjectsRouteRoute: typeof AppProjectsRouteRoute
+  AppChatProjectIdRouteRoute: typeof AppChatProjectIdRouteRoute
+}
+
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppProjectsRouteRoute: AppProjectsRouteRoute,
+  AppChatProjectIdRouteRoute: AppChatProjectIdRouteRoute,
+}
+
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRouteRoute: IndexRouteRoute,
+  AppRouteRoute: AppRouteRouteWithChildren,
+  LoginRouteRoute: LoginRouteRoute,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
