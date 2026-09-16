@@ -12,7 +12,8 @@
     "paths": {
       "@app/*": ["./src/app/*"],
       "@prisma-svc": ["./prisma/prisma.service"],
-      "@prisma-svc/*": ["./prisma/*"]
+      "@prisma-svc/*": ["./prisma/*"],
+      "@prisma-gnt/*": ["./src/generated/prisma/*"]
     }
   }
 }
