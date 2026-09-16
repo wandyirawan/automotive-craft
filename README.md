@@ -1,96 +1,141 @@
 # AutomotiveCraft
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+AI Design Brief Assistant — full-stack workspace untuk membuat design brief otomatis
+berbasis percakapan AI. Dibangun sebagai submission untuk assessment *lmesh Full-Stack
+Technical Assessment*.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Stack
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- **Monorepo:** [Nx](https://nx.dev) 23 (pnpm workspace)
+- **API:** [NestJS](https://nestjs.com) 11 + Fastify 5, TypeScript (NodeNext)
+- **Web:** React 19 + [TanStack Router](https://tanstack.com/router) + Vite 8 + Tailwind CSS 4
+- **Database & ORM:** PostgreSQL 17 + [Prisma](https://prisma.io) 7 (driver adapter `@prisma/adapter-pg`)
+- **AI:** provider OpenAI-compatible via satu adapter (`openai-compatible.provider.ts`),
+  di-switch lewat environment variable (OpenRouter / Gemini / Ollama)
 
-## Run tasks
+## Struktur
 
-To run tasks with Nx use:
-
-```sh
-npx nx <target> <project-name>
+```
+apps/
+  api/        NestJS + Fastify backend (port 3000)
+  web/        React + Vite frontend (port 4200 dev / 4300 preview)
+  api-e2e/    e2e tests untuk api
+apps/api/prisma/
+  schema.prisma    2 model: User, Project (conversation disimpan JSONB)
+  seed.ts          seed user demo
+apps/api/src/generated/prisma/   Prisma client (di-generate, di-commit)
+DECISIONS.md       Architecture Decision Record (ADR)
 ```
 
-For example:
+## Prasyarat
+
+- Node.js 22+ (di-manage via mise)
+- pnpm 10+
+- Docker (untuk PostgreSQL lokal)
+
+## Setup
 
 ```sh
-npx nx build myproject
+# 1. Install dependencies
+pnpm install
+
+# 2. Siapkan environment
+cp .env.example .env
+# edit .env — set SESSION_SECRET dan AI_API_KEY (lihat bagian Environment)
+
+# 3. Jalankan PostgreSQL via docker compose
+docker compose up -d
+
+# 4. Generate Prisma client & jalankan migrasi + seed
+npx prisma generate
+npx prisma migrate dev
+npx prisma db seed
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
-```
-
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
-
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
+`SESSION_SECRET` harus string acak panjang, mis.:
 
 ```sh
-npx nx connect
+openssl rand -hex 32
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
+## Menjalankan aplikasi
 
 ```sh
-npx nx g ci-workflow
+# Terminal 1 — API (http://localhost:3000)
+npx nx serve api
+
+# Terminal 2 — Web (http://localhost:4200)
+npx nx serve web
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Frontend memanggil API lewat path relatif `/api/v1` (same-origin, cookie session
+`httpOnly` + `sameSite: strict`), jadi tidak perlu mengatur URL API saat dev.
 
-## Install Nx Console
+## Build
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+```sh
+npx nx build api      # output: dist/apps/api
+npx nx build web      # output: dist/apps/web
+```
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Environment
 
-## Useful links
+Semua variabel ada di `.env` (root). Lihat `.env.example` untuk template.
 
-Learn more:
+| Variabel        | Keterangan                                                        |
+| --------------- | ----------------------------------------------------------------- |
+| `PORT`          | Port API (default `3000`)                                         |
+| `SESSION_SECRET`| Secret untuk sign cookie session (generate: `openssl rand -hex 32`)|
+| `DATABASE_URL`  | Connection string PostgreSQL (default `postgresql://postgres:***@localhost:5432/automotive_craft`) |
+| `AI_PROVIDER`   | Nama provider AI (`openrouter`, `gemini`, `ollama`, ...)          |
+| `AI_BASE_URL`   | Base URL endpoint OpenAI-compatible                               |
+| `AI_API_KEY`    | API key provider                                                  |
+| `AI_MODEL`      | Nama model (mis. `meta-llama/llama-3.1-8b-instruct:free`)         |
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## API
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Semua endpoint diawali `/api/v1`. Autentikasi memakai **session cookie** (bukan JWT):
+
+| Method | Path                     | Publik? | Keterangan                |
+| ------ | ------------------------ | ------- | ------------------------- |
+| POST   | `/api/v1/auth/login`     | Ya      | Login (email + password)  |
+| POST   | `/api/v1/auth/logout`    | Tidak   | Logout                    |
+| GET    | `/api/v1/auth/me`        | Tidak   | Profil user terautentikasi|
+
+Route yang tidak ber-label publik ditolak dengan `401` oleh global guard
+(`APP_GUARD`) kecuali diberi decorator `@Public()`.
+
+## Database & Prisma
+
+- 2 model: `User` dan `Project`. Tidak ada tabel `Message` — percakapan
+  disimpan sebagai kolom JSONB `conversation` (default `[]`) di row `Project`.
+  Detail rasional di `DECISIONS.md` bagian 3.
+- Generator Prisma menulis client ke `apps/api/src/generated/prisma` (di-commit,
+  bukan di-gitignore) karena generator Prisma 7 dipakai bersama driver adapter.
+- Run via `prisma.config.ts` (bukan `schema.prisma` block): schema, path migrasi,
+  dan seed dikonfigurasi di sana.
+
+```sh
+npx prisma generate        # generate client
+npx prisma migrate dev      # buat/terapkan migrasi
+npx prisma studio           # browse data
+npx prisma db seed          # isi user demo (lihat apps/api/prisma/seed.ts)
+```
+
+## Catatan build (Prisma 7 + webpack)
+
+Build API membutuhkan konfigurasi khusus di `apps/api/webpack.config.js` karena
+Prisma 7 meng-generate client bergaya ESM yang bermasalah saat di-bundle webpack
+(Nx):
+
+- `optimization.concatenateModules` dimatikan (Nx menghardcode `true`) agar
+  re-export `export * as $Enums` tidak gagal build.
+- Generated Prisma client + `@prisma/client/runtime/*` + `@prisma/adapter-pg`
+  di-**externalize** (`mergeExternals: true`) dan generated client di-copy ke
+  `dist` sebagai asset, lalu di-load natively oleh `tsx` saat serve
+  (`runtimeArgs: ["--require", "tsx/cjs"]` di `project.json`).
+
+## Nx
+
+Task dijalankan dengan `npx nx <target> <project>`. Target utama: `build`,
+`serve`, `test`, `lint`. `npx nx graph` untuk visualisasi dependency.
