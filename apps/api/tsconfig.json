@@ -8,6 +8,11 @@
     }
   ],
   "compilerOptions": {
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@app/*": ["./src/app/*"],
+      "@prisma-svc": ["./prisma/prisma.service"],
+      "@prisma-svc/*": ["./prisma/*"]
+    }
   }
 }

@@ -1,13 +1,8 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
+import { AppException } from "./base.exception";
 
-export class AiConfigurationException extends HttpException {
-  constructor(message: string) {
-    super(
-      {
-        message,
-        code: "AI_CONFIGURATION_ERROR",
-      },
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+export class AiConfigurationException extends AppException {
+  constructor(message = "Ai configuration error") {
+    super(message, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

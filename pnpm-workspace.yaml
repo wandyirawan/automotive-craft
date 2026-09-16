@@ -1,4 +1,6 @@
 autoInstallPeers: true
+overrides:
+  fastify: 5.12.4
 allowBuilds:
   '@parcel/watcher': true
   nx: true
@@ -7,3 +9,4 @@ allowBuilds:
   esbuild: false
   '@prisma/engines': true
   prisma: true
+  bcrypt: false

@@ -59,7 +59,11 @@
       ],
       "options": {
         "buildTarget": "api:build",
-        "runBuildTargetDependencies": false
+        "runBuildTargetDependencies": false,
+        "runtimeArgs": [
+          "--require",
+          "tsx/cjs"
+        ]
       },
       "configurations": {
         "development": {
