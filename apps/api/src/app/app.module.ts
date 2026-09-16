@@ -7,6 +7,8 @@ import { AiModule } from "./ai/ai.module";
 import { PrismaModule } from "@prisma-svc/prisma.module";
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
+import { ProjectModule } from "./project/project.module";
+import { ChatModule } from "./chat/chat.module";
 import { AuthGuard } from "./auth/auth.guard";
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { AuthGuard } from "./auth/auth.guard";
     PrismaModule,
     UsersModule,
     AuthModule,
+    ProjectModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
